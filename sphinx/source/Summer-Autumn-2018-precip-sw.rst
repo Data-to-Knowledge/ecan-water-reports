@@ -21,6 +21,8 @@ This confirms the Environment Canterbury advice that a winter of high rainfall w
 
 Also of note is that the river reconnected across the plains after the rainfall from Cyclone Gita giving a rapid rise from around 0.5 to 90 cumecs that caught out a camper van parked at Coes Ford (against advice).
 
+.. _my-figure-ref:
+
 .. figure:: img/selwyn_flows.png
    :alt: selwyn flows plot
 
