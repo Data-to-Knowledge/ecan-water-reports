@@ -24,7 +24,6 @@ Also of note is that the river reconnected across the plains after the rainfall 
 .. _my-figure-ref:
 
 .. figure:: img/selwyn_flows.png
-   :alt: selwyn flows plot
 
 	 Flow in the Selwyn River compared year on year from November until the end of February.
 
