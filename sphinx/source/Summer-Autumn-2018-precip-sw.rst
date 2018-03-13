@@ -24,7 +24,7 @@ Also of note is that the river reconnected across the plains after the rainfall 
 .. figure:: img/selwyn_flows.png
    :alt: selwyn flows plot
 
-	 *Flow in the Selwyn River compared year on year from November until the end of February.*
+	 Flow in the Selwyn River compared year on year from November until the end of February.
 
 Waimakariri high country lakes fish rash
 -----------------------------------------
