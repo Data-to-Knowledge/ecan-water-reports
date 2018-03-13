@@ -11,7 +11,7 @@ Irrigation restrictions varied over summer months in response to weather pattern
 .. figure:: img/2017-2018_restrictions_fancy_v03.png
    :alt: site restrictions map
 
-	 *Low flow site restrictions during the 2017-2018 irrigation season.*
+	  *Low flow site restrictions during the 2017-2018 irrigation season.*
 
 Selwyn River/Waikirikiri flows
 ----------------------------------

@@ -13,4 +13,4 @@ Groundwater levels in February 2018 were generally average to above average acro
 .. figure:: img/west_melton_gw.png
    :alt: west melton groundwater levels
 
-	 *Groundwater depth below surface in a West Melton monitoring well.*
+	  *Groundwater depth below surface in a West Melton monitoring well.*
