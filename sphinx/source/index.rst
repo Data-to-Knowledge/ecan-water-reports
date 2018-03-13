@@ -1,5 +1,5 @@
 
-Welcome to ECan's Feshwater Reports
+Welcome to ECan's Freshwater Reports
 ===========================================
 
 Maps of Canterbury illustrating the relative wetness or dryness for precipitation, surface water, and groundwater are generated monthly. This documentation presents these maps and the associated seasonal reports. The intended audience for the maps and the associated reports are the Environment Canterbury Councillors.
