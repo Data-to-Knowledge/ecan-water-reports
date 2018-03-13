@@ -88,8 +88,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = 'ECan Python'
-copyright = '2017 Mike Kittridge'
+project = 'ECan Freshwater Reports'
+copyright = '2018 ECan'
 author = 'Mike Kittridge'
 
 # The version info for the project you're documenting, acts as replacement for
