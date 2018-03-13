@@ -8,8 +8,6 @@ NIWA seasonal climate outlook
 -------------------------------
 NIWA produces seasonal forecasts, which can be found on `NIWA's website <https://www.niwa.co.nz/climate/seasonal-climate-outlook/seasonal-climate-outlook-march-may-2018>`_.
 
-Outline
----------------
 
 .. toctree::
    :maxdepth: 2
