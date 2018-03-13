@@ -9,9 +9,8 @@ Surface take restrictions for irrigation
 Irrigation restrictions varied over summer months in response to weather patterns.  In comparison with last year, there were fewer restrictions on water takes, particularly at the beginning of the irrigation season (based on telemetered and gauged data).
 
 .. figure:: img/2017-2018_restrictions_fancy_v03.png
-   :alt: site restrictions map
 
-	  *Low flow site restrictions during the 2017-2018 irrigation season.*
+	 Low flow site restrictions during the 2017-2018 irrigation season.
 
 Selwyn River/Waikirikiri flows
 ----------------------------------
@@ -20,8 +19,6 @@ The Selwyn River has held up well this summer with sustained flows (see graph be
 This confirms the Environment Canterbury advice that a winter of high rainfall would recharge groundwater and maintain flows in the following summer.
 
 Also of note is that the river reconnected across the plains after the rainfall from Cyclone Gita giving a rapid rise from around 0.5 to 90 cumecs that caught out a camper van parked at Coes Ford (against advice).
-
-.. _my-figure-ref:
 
 .. figure:: img/selwyn_flows.png
 
@@ -48,6 +45,5 @@ Lindavia (an invasive species of diatom) has caused concern for water supply and
 Manaaki Whenua-Landcare Research is running an MBIE “Smart Ideas” research programme looking at detection tools and finding other information on Lindavia.  Environment Canterbury is well linked into this research programme and is also funding work (jointly with Otago and Southland regional councils) by the University of Otago on coring southern lakes sediment to find when Lindavia reached the lakes.
 
 .. figure:: img/lindavia.jpg
-   :alt: lindavia photo
 
-	 *Lindavia mucus at Lake Tekapo power station.*
+	 Lindavia mucus at Lake Tekapo power station.

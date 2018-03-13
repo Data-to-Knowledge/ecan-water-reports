@@ -11,6 +11,5 @@ Groundwater levels are healthy because of last year’s wet winter. Additional r
 Groundwater levels in February 2018 were generally average to above average across the region. This is much better than this time last year, when 64% of our monitoring wells had low or very low water levels. The monitoring well (shown below) is provided as an example of seasonal groundwater levels since 2011.
 
 .. figure:: img/west_melton_gw.png
-   :alt: west melton groundwater levels
 
-	  *Groundwater depth below surface in a West Melton monitoring well.*
+	 Groundwater depth below surface in a West Melton monitoring well.
