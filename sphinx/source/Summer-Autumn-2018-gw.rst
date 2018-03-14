@@ -1,4 +1,4 @@
-Summer-Autumn 2018 Groundwater
+Groundwater
 ================================
 
 .. raw:: html

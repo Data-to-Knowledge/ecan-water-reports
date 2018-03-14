@@ -1,4 +1,4 @@
-Summer-Autumn 2018 Precipitation and Surface Water
+Precipitation and Surface Water
 =====================================================
 
 .. raw:: html

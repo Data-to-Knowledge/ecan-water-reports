@@ -1,4 +1,4 @@
-Spring-Summer 2017-18 Precipitation and Surface Water
+Precipitation and Surface Water
 =====================================================
 
 .. raw:: html
