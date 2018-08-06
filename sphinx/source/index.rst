@@ -8,7 +8,14 @@ NIWA seasonal climate outlook
 -------------------------------
 NIWA produces seasonal forecasts, which can be found on `NIWA's website <https://www.niwa.co.nz/climate/seasonal-climate-outlook>`_.
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Latest Maps
 
+   latest_gw
+   latest_precip_sw
+   latest_sw_catch
+   
 .. toctree::
    :maxdepth: 2
    :caption: Summer-Autumn 2018

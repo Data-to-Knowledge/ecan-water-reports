@@ -2,7 +2,7 @@ Groundwater
 ================================
 
 .. raw:: html
-   :file: bokeh_html/fresh_gw_map_2018-03-02.html
+   :file: bokeh_html/fresh_gw_map_2018-03-14.html
 
 Groundwater levels and forecast
 --------------------------------
