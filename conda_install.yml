@@ -1,0 +1,12 @@
+name: water_reports
+channels:
+- conda-forge
+- mullenkamp
+- defaults
+dependencies:
+- python=3.6
+- pdsql
+- geopandas
+- scipy
+- pyhydrotel
+- bokeh

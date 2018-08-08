@@ -14,7 +14,7 @@ from datetime import date
 from scipy.stats import percentileofscore
 from numpy import nan
 from pdsql import mssql
-from pyhydllp import hyd, sql, hydllp
+#from pyhydllp import hyd, sql, hydllp
 from pyhydrotel import get_ts_data
 from configparser import ConfigParser
 import os
