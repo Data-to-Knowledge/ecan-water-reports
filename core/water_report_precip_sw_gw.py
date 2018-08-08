@@ -7,7 +7,7 @@ Created on Mon Jul 17 16:27:09 2017
 
 #import sys
 #sys.path.append(r'C:\git\Ecan.Science.Python.Base')
-
+from gistools.vector import multipoly_to_poly
 from geopandas import read_file, sjoin, GeoDataFrame, overlay
 from pandas import DateOffset, to_datetime, concat, merge, cut, DataFrame, MultiIndex, Series, read_csv
 from datetime import date
@@ -18,7 +18,8 @@ from pdsql import mssql
 from pyhydrotel import get_ts_data
 from configparser import ConfigParser
 import os
-from util import grp_ts_agg, multipoly_to_poly
+from util import grp_ts_agg
+import shutil
 
 from bokeh.plotting import figure, show, output_file
 from bokeh.models import ColumnDataSource, HoverTool, CategoricalColorMapper, CustomJS, renderers, annotations, Panel, Tabs
@@ -26,47 +27,7 @@ from bokeh.palettes import brewer
 from bokeh.models.widgets import Select
 from bokeh.layouts import column
 
-###################################################
-#### Parameters
-
-base_dir = os.path.split(os.path.realpath(os.path.dirname(__file__)))[0]
-
-input_dir = 'input_data'
-
-hydro_server = 'sql2012test01'
-hydro_database = 'hydro'
-ts_table = 'TSDataNumericDaily'
-
-hydrotel_server = 'sql2012prod04'
-hydrotel_database = 'hydrotel'
-
-sw_poly_shp = 'sw_boundary_v01.shp'
-precip_poly_shp = 'precip_boundary_v01.shp'
-#gw_poly_shp = 'precip_boundary_v01.shp'
-rec_catch_shp = 'catch_delin_recorders.shp'
-#gw_sites_shp = 'gw_sites1.shp'
-view_bound_shp = 'boundary_v02.shp'
-precip_site_shp = 'precip_sites.shp'
-pot_sw_site_list_csv = 'potential_sw_site_list.csv'
-
-qual_codes = [10, 18, 20, 30, 50, 11, 21, 40]
-
-n_previous_months = 6
-
-month_names = ['Jan', 'Feb', 'March', 'April', 'May', 'June', 'July', 'August', 'Sept', 'Oct', 'Nov', 'Dec']
-
-lon_zone_names = {'L': 'Lowlands', 'F': 'Foothills', 'M': 'Mountains', 'BP': 'Banks Peninsula'}
-
-### Output
-output_dir = 'output_results'
-date_now = str(date.today())
-
-ts_out_csv = 'ts_out_perc_' + date_now + '.csv'
-
-## plots
-#precip_sw_gw1_html = 'precip_sw_gw_' + date_str + '.html'
-precip_sw1_html = 'precip_sw_' + date_now + '.html'
-sw1_html = 'sw_catch_' + date_now + '.html'
+import parameters as param
 
 ##################################################
 #### Read in data
@@ -74,31 +35,31 @@ sw1_html = 'sw_catch_' + date_now + '.html'
 print('Reading in the data')
 
 ### Overall veiw
-view_zones = read_file(os.path.join(base_dir, input_dir, view_bound_shp))
-view_zones = view_zones.replace({'lon_zone': lon_zone_names})
+view_zones = read_file(os.path.join(param.base_dir, param.input_dir, param.view_bound_shp))
+view_zones = view_zones.replace({'lon_zone': param.lon_zone_names})
 view_zones['zone'] = view_zones['lat_zone'] + ' - ' + view_zones['lon_zone']
 view_zones = view_zones.drop(['lon_zone', 'lat_zone'], axis=1)
 
 ### SW
-sw_poly = read_file(os.path.join(base_dir, input_dir, sw_poly_shp))[['lat_zone', 'lon_zone', 'geometry']]
-rec_catch = read_file(os.path.join(base_dir, input_dir, rec_catch_shp))
-site_list = read_csv(os.path.join(base_dir, input_dir, pot_sw_site_list_csv))
+sw_poly = read_file(os.path.join(param.base_dir, param.input_dir, param.sw_poly_shp))[['lat_zone', 'lon_zone', 'geometry']]
+rec_catch = read_file(os.path.join(param.base_dir, param.input_dir, param.rec_catch_shp))
+site_list = read_csv(os.path.join(param.base_dir, param.input_dir, param.pot_sw_site_list_csv))
 
-sw_list = site_list.replace({'lon_zone': lon_zone_names})
+sw_list = site_list.replace({'lon_zone': param.lon_zone_names})
 sw_list['zone'] = sw_list['lat_zone'] + ' - ' + sw_list['lon_zone']
 sw_list = sw_list.drop(['lon_zone', 'lat_zone'], axis=1)
 sw_list.loc[19:20, 'Notes'] = nan
 
-sw_zones = sw_poly.replace({'lon_zone': lon_zone_names})
+sw_zones = sw_poly.replace({'lon_zone': param.lon_zone_names})
 sw_zones['zone'] = sw_zones['lat_zone'] + ' - ' + sw_zones['lon_zone']
 sw_zones = sw_zones.drop(['lon_zone', 'lat_zone'], axis=1)
 sw_zones['mtype'] = 'flow'
 
 ### precip
-precip_sites = read_file(os.path.join(base_dir, input_dir, precip_site_shp))
-precip_zones = read_file(os.path.join(base_dir, input_dir, precip_poly_shp))
+precip_sites = read_file(os.path.join(param.base_dir, param.input_dir, param.precip_site_shp))
+precip_zones = read_file(os.path.join(param.base_dir, param.input_dir, param.precip_poly_shp))
 
-precip_zones = precip_zones.replace({'lon_zone': lon_zone_names})
+precip_zones = precip_zones.replace({'lon_zone': param.lon_zone_names})
 precip_zones['zone'] = precip_zones['lat_zone'] + ' - ' + precip_zones['lon_zone']
 precip_zones = precip_zones.drop(['lon_zone', 'lat_zone'], axis=1)
 precip_zones['mtype'] = 'precip'
@@ -128,11 +89,11 @@ zones = concat([sw_zones, precip_zones]).reset_index(drop=True)
 ### SW
 sites1 = sw_list[sw_list.Notes.isnull()].drop('Notes', axis=1)
 
-flow1 = mssql.rd_sql_ts(hydro_server, hydro_database, ts_table, 'ExtSiteID', 'DateTime', 'Value', where_col={'ExtSiteID': sites1.site.tolist(), 'DatasetTypeID': [5]}).reset_index()
+flow1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_col={'ExtSiteID': sites1.site.tolist(), 'DatasetTypeID': [5]}).reset_index()
 flow1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
 
 ### precip
-precip1 = mssql.rd_sql_ts(hydro_server, hydro_database, ts_table, 'ExtSiteID', 'DateTime', 'Value', where_col={'ExtSiteID': precip_sites.site.tolist(), 'DatasetTypeID': [15]}).reset_index()
+precip1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_col={'ExtSiteID': precip_sites.site.tolist(), 'DatasetTypeID': [15]}).reset_index()
 precip1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
 
 ### GW
@@ -170,8 +131,8 @@ mon_summ = concat([mon_flow1, mon_precip1]).reset_index(drop=True)
 ###############################################
 #### Pull out recent monthly data from hydrotel
 
-now1 = to_datetime(date_now)
-start_date = now1 - DateOffset(months=n_previous_months) - DateOffset(days=now1.day - 1)
+now1 = to_datetime(param.date_now)
+start_date = now1 - DateOffset(months=param.n_previous_months) - DateOffset(days=now1.day - 1)
 end_date = now1 - DateOffset(days=now1.day - 1)
 
 ### SW
@@ -181,7 +142,7 @@ sites2.loc[sites2.site.isin([64610, 65104, 68526]), 'site'] = [164610, 165104, 1
 
 hy_sites = sites2.site.astype(str).tolist()
 
-hy1 = get_ts_data(hydrotel_server, hydrotel_database, 'flow', hy_sites, from_date=start_date.strftime('%Y-%m-%d'), to_date=end_date.strftime('%Y-%m-%d'), resample_code='D')
+hy1 = get_ts_data(param.hydrotel_server, param.hydrotel_database, 'flow', hy_sites, from_date=start_date.strftime('%Y-%m-%d'), to_date=end_date.strftime('%Y-%m-%d'), resample_code='D')
 hy2 = hy1.reset_index().drop('MType', axis=1)
 hy2.rename(columns={'ExtSysID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
 
@@ -207,7 +168,7 @@ print('Getting HydroTel Precip Data:')
 
 hy_sites = mon_precip1.site.unique().astype(str).tolist()
 
-hy1 = get_ts_data(hydrotel_server, hydrotel_database, 'rainfall', hy_sites, from_date=start_date.strftime('%Y-%m-%d'), to_date=end_date.strftime('%Y-%m-%d'), resample_code='D')
+hy1 = get_ts_data(param.hydrotel_server, param.hydrotel_database, 'rainfall', hy_sites, from_date=start_date.strftime('%Y-%m-%d'), to_date=end_date.strftime('%Y-%m-%d'), resample_code='D')
 hy2 = hy1.reset_index().drop('MType', axis=1)
 hy2.rename(columns={'ExtSysID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
 
@@ -287,14 +248,6 @@ site_zones = concat([sw_site_zone, precip_site_zone1])
 
 print('Calculating the percentiles')
 
-#def row_perc(x, mon_summ):
-#    mon1 = x.time.month
-#    mon_val = mon_summ[(mon_summ.site == x.site) & (mon_summ.mon == mon1) & (mon_summ.mtype == x.mtype)].data.values
-#    perc1 = percentileofscore(mon_val, x.data)
-#    return perc1
-#
-#hy_summ['perc_temp'] = hy_summ.apply(row_perc, mon_summ=mon_summ, axis=1)
-
 perc_temp_list = []
 
 for p in hy_summ.itertuples():
@@ -354,7 +307,8 @@ print('Exporting results to csv')
 ts_out1 = hy_summ1.copy()
 ts_out2 = ts_out1.pivot_table('perc_temp', ['mtype', 'site'], 'time').round(2)
 ts_out3 = ts_out2.reset_index()
-ts_out3.to_csv(os.path.join(base_dir, output_dir, ts_out_csv), index=False)
+ts_out_path = os.path.join(param.base_dir, param.output_dir, param.ts_out_csv)
+ts_out3.to_csv(ts_out_path, index=False)
 
 #################################################
 #### Plotting
@@ -438,8 +392,9 @@ w = 700
 h = w
 
 ### All three parameters
+bokeh_subregion_html = os.path.join(param.base_dir, param.bokeh_dir, param.today_precip_sw_subregion_html)
 
-output_file(os.path.join(base_dir, output_dir, precip_sw1_html))
+output_file(bokeh_subregion_html)
 
 ## dummy figure - for legend consistency
 p0 = figure(title='dummy Index', tools=[], logo=None, height=h, width=w)
@@ -539,8 +494,9 @@ show(tabs_alt)
 
 
 ### Plots for catchments
+bokeh_catch_html = os.path.join(param.base_dir, param.bokeh_dir, param.today_sw_catch_html)
 
-output_file(os.path.join(base_dir, output_dir, sw1_html))
+output_file(bokeh_catch_html)
 
 ## Base figure for Canterbury
 
@@ -572,14 +528,23 @@ layout3 = column(p3, select3)
 
 show(layout3)
 
+#############################################
+### Make html copy without date in filename
 
+bokeh_subregion_html1 = os.path.join(os.path.split(bokeh_subregion_html)[0], param.base_precip_sw_subregion_html)
+
+shutil.copy(bokeh_subregion_html, bokeh_subregion_html1)
+
+bokeh_catch_html1 = os.path.join(os.path.split(bokeh_catch_html)[0], param.base_sw_catch_html)
+
+shutil.copy(bokeh_catch_html, bokeh_catch_html1)
 
 #############################################
 #### Print where results are saved
 
-print('########################')
-print('Results were saved here: ' + os.path.join(output_dir, ts_out_csv))
-print('The plot was saved here: ' + os.path.join(output_dir, precip_sw1_html))
+#print('########################')
+#print('Results were saved here: ' + os.path.join(output_dir, ts_out_csv))
+#print('The plot was saved here: ' + os.path.join(output_dir, precip_sw1_html))
 
 
 
