@@ -14,6 +14,8 @@ import parameters as param
 print('precip and sw maps')
 import water_report_precip_sw_gw as map1
 
+print('gw map')
+import water_report_gw as map2
 
 ################################
 ### Modify the index.rst
@@ -34,7 +36,7 @@ with open(index_rst_path, 'w') as w1:
 
 repo = Repo(param.base_dir)
 
-file_list = [map1.bokeh_catch_html1, map1.bokeh_subregion_html1, map1.bokeh_catch_html, map1.bokeh_subregion_html, map1.ts_out_path, index_rst_path]
+file_list = [map1.bokeh_catch_html1, map1.bokeh_subregion_html1, map1.bokeh_catch_html, map1.bokeh_subregion_html, map1.ts_out_path, index_rst_path, map2.bokeh_gw_cwms_html, map2.bokeh_subregion_html1]
 
 repo.index.add(file_list)
 repo.index.commit('update')

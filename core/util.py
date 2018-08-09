@@ -66,3 +66,37 @@ def multipoly_to_poly(geodataframe):
             new1 = geom1.copy()
         gpd2 = pd.concat([gpd2, new1])
     return gpd2.reset_index(drop=True)
+
+
+def tsreg(ts, freq=None, interp=False):
+    """
+    Function to regularize a time series object (pandas).
+    The first three indeces must be regular for freq=None!!!
+
+    ts -- pandas time series dataframe.\n
+    freq -- Either specify the known frequency of the data or use None and
+    determine the frequency from the first three indices.\n
+    interp -- Should linear interpolation be applied on all missing data?
+    """
+
+    if freq is None:
+        freq = pd.infer_freq(ts.index[:3])
+    ts1 = ts.resample(freq).mean()
+    if interp:
+        ts1 = ts1.interpolate('time')
+
+    return ts1
+
+
+def getPolyCoords(row, coord_type, geom='geometry'):
+    """Returns the coordinates ('x' or 'y') of edges of a Polygon exterior"""
+
+    # Parse the exterior of the coordinate
+    exterior = row[geom].exterior
+
+    if coord_type == 'x':
+        # Get the x coordinates of the exterior
+        return list(exterior.coords.xy[0])
+    elif coord_type == 'y':
+        # Get the y coordinates of the exterior
+        return list(exterior.coords.xy[1])

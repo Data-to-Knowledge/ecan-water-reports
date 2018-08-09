@@ -4,59 +4,26 @@ Created on Mon Jul 17 16:27:09 2017
 
 @author: MichaelEK
 """
-
-import sys
-sys.path.remove('E:\\ecan\\git\\HydroPandas')
-
-from geopandas import read_file, sjoin
-from pandas import DateOffset, to_datetime, concat, merge, cut, DataFrame, MultiIndex, Series, read_csv
-from os.path import join
-from core.spatial.vector import multipoly_to_poly
-from core.ts.ts import grp_ts_agg
+import geopandas as gpd
+import pandas as pd
+import os
+from util import grp_ts_agg, tsreg, getPolyCoords
+import shutil
+from gistools.vector import multipoly_to_poly, xy_to_gpd
 from datetime import date
-from scipy.stats import percentileofscore, rankdata
-from numpy import nan, percentile
-from core.classes.hydro import hydro
-from core.ts.ts import tsreg
+from scipy.stats import rankdata
+from numpy import nan
 from warnings import filterwarnings
+from pdsql import mssql
 
 from bokeh.plotting import figure, show, output_file
 from bokeh.models import ColumnDataSource, HoverTool, CategoricalColorMapper, CustomJS, renderers, annotations
 from bokeh.palettes import brewer
 from bokeh.models.widgets import Select
 from bokeh.layouts import column
+from bokeh.io import save
 
-from Tkinter import Tk
-from tkFileDialog import askdirectory
-
-date1 = date.today()
-date_str = str(date1)
-filterwarnings('ignore')
-Tk().withdraw()
-
-###################################################
-#### Parameters
-
-### Input
-base_dir = r'\\gisdata\projects\SCI\Surface Water Quantity\Projects\Freshwater Report\GW'
-gw_poly_shp = 'cwms_zones_simple.shp'
-well_depth_csv = 'well_depths.csv'
-upper_waitaki_shp = 'upper_waitaki_zone.shp'
-
-interp = True
-
-n_previous_months = 6
-
-### Output
-
-output_dir = askdirectory(initialdir=base_dir, title='Select the output directory', mustexist=True)
-gw_sites_shp = 'gw_sites_' + date_str + '.shp'
-all_gw_sites_shp = 'all_discrete_gw_sites_' + date_str + '.shp'
-gw_sites_ts_shp = 'gw_sites_perc_' + date_str + '.shp'
-gw_sites_ts_csv = 'gw_sites_perc_' + date_str + '.csv'
-
-## plots
-test2_html = 'fresh_gw_map_' + date_str + '.html'
+import parameters as param
 
 ##################################################
 #### Read in data
@@ -65,20 +32,22 @@ print('Reading in the data')
 
 ### gw
 #gw_sites = read_file(join(base_dir, gw_sites_shp))
-gw_zones = read_file(join(base_dir, gw_poly_shp))[['ZONE_NAME', 'geometry']]
+gw_zones = gpd.read_file(os.path.join(param.base_dir, param.input_dir, param.gw_poly_shp))[['ZONE_NAME', 'geometry']]
 
 gw_zones = gw_zones.rename(columns={'ZONE_NAME': 'zone'})
 #gw_zones['mtype'] = 'gw'
 
-well_depths = read_csv(join(base_dir, well_depth_csv)).set_index('site')
+well_depths = pd.read_csv(os.path.join(param.base_dir, param.input_dir, param.well_depth_csv)).set_index('site')
 
 #################################################
 #### Select sites
 
 ### GW
-#gw1 = hydro().get_data(mtypes='aq_wl_disc_qc', sites=gw_sites.site.unique())
-gw1 = hydro().get_data(mtypes='aq_wl_disc_qc', sites=join(base_dir, gw_poly_shp))
-gw1.to_shp(join(output_dir, all_gw_sites_shp))
+sites = mssql.rd_sql(param.hydro_server, param.hydro_database, param.sites_table, ['ExtSiteID', 'NZTMX', 'NZTMY', 'CwmsName'], {'ExtSiteID': well_depths.index.tolist()})
+sites.rename(columns={'ExtSiteID': 'site'}, inplace=True)
+
+gw1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_col={'ExtSiteID': sites.site.tolist(), 'DatasetTypeID': [13]}).reset_index()
+gw1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
 
 #################################################
 #### Run monthly summary stats
@@ -86,60 +55,47 @@ gw1.to_shp(join(output_dir, all_gw_sites_shp))
 print('Processing past data')
 
 ### Filter sites
-stats = gw1._base_stats.copy()
-stats.index = stats.index.droplevel('mtype')
+count1 = gw1.groupby('site').data.count()
+start_date1 = gw1.groupby('site').time.first()
+end_date1 = gw1.groupby('site').time.last()
 
-now1 = to_datetime(date1)
-start_date1 = now1 - DateOffset(months=121) - DateOffset(days=now1.day - 1)
-start_date2 = now1 - DateOffset(months=1) - DateOffset(days=now1.day - 1)
+now1 = pd.to_datetime(param.date_now)
+start_date1 = now1 - pd.DateOffset(months=121) - pd.DateOffset(days=now1.day - 1)
+start_date2 = now1 - pd.DateOffset(months=1) - pd.DateOffset(days=now1.day - 1)
 
-stats1 = stats[(stats['count'] >= 120) & (stats['end_time'] >= start_date2) & (stats['start_time'] <= start_date1)]
+sites1 = sites[sites.site.isin(count1[(count1 >= 120) & (end_date1 >= start_date2) & (start_date1 <= start_date1)].index)]
 
-gw2 = gw1.sel(sites=stats1.index)
+uw1 = sites[sites.CwmsName.isin(['Upper Waitaki']) & sites.site.isin(count1[(count1 >= 80) & (end_date1 >= start_date2) & (start_date1 <= start_date1)].index)]
 
-## upper waitaki special
-uw1 = gw1.sel_by_poly(join(base_dir, upper_waitaki_shp))
-uw1._base_stats_fun()
-uw_stats = uw1._base_stats.copy()
-uw_stats.index = uw_stats.index.droplevel('mtype')
+sites2 = pd.concat([sites1, uw1]).drop_duplicates()
 
-start_date0 = now1 - DateOffset(months=61) - DateOffset(days=now1.day - 1)
+gw_sites = xy_to_gpd(['site', 'CwmsName'], 'NZTMX', 'NZTMY', sites2)
 
-uw_stats1 = uw_stats[(uw_stats['count'] >= 60) & (stats['end_time'] >= start_date2) & (stats['start_time'] <= start_date0)]
-
-uw2 = uw1.sel(sites=uw_stats1.index)
-
-## Combine
-gw2a = gw2.combine(uw2)
-gw3 = gw2a.data.copy()
-gw3.index = gw3.index.droplevel('mtype')
-gw3 = gw3.reset_index()
+gw2 = gw1[gw1.site.isin(gw_sites.site)].copy()
 
 ### Extract Site locations
-gw_sites = gw2a.geo_loc.copy().reset_index()
-gw_sites.to_file(join(base_dir, gw_sites_shp))
+gw_sites.to_file(os.path.join(param.base_dir, param.input_dir, param.gw_sites_shp))
 
 ### Combine the sites with the polygons
-gw_site_zone0 = sjoin(gw_sites, gw_zones).drop(['index_right'], axis=1)
-gw_site_zone = gw_site_zone0.drop(['geometry'], axis=1)
+gw_site_zone = gw_sites.drop(['geometry'], axis=1)
+gw_site_zone.rename(columns={'CwmsName': 'zone'}, inplace=True)
 
 ### Monthly interpolations
-if interp:
+if param.interp:
     ## Estimate monthly means through interpolation
-    day1 = grp_ts_agg(gw3, 'site', 'time', 'D').mean().unstack('site')
+    day1 = grp_ts_agg(gw2, 'site', 'time', 'D').mean().unstack('site')
     day2 = tsreg(day1, 'D', False)
     day3 = day2.interpolate(method='time', limit=40)
     mon_gw1 = day3.resample('M').median().stack().reset_index()
 else:
-    mon_gw1 = grp_ts_agg(gw3, 'site', 'time', 'M').mean().reset_index()
+    mon_gw1 = grp_ts_agg(gw2, 'site', 'time', 'M').mean().reset_index()
 
 ## End the dataset to the lastest month
-end_date = now1 - DateOffset(days=now1.day - 1)
+end_date = now1 - pd.DateOffset(days=now1.day - 1)
 mon_gw1 = mon_gw1[mon_gw1.time < end_date]
 
 ## Assign month
 mon_gw1['mon'] = mon_gw1.time.dt.month
-#mon_gw1['mtype'] = 'gw'
 
 
 ##############################################
@@ -154,7 +110,7 @@ hy_gw0['perc'] = (hy_gw0.groupby(['site', 'mon'])['data'].transform(lambda x: (r
 ###############################################
 #### Pull out recent monthly data
 
-start_date = now1 - DateOffset(months=n_previous_months) - DateOffset(days=now1.day - 1)
+start_date = now1 - pd.DateOffset(months=param.n_previous_months) - pd.DateOffset(days=now1.day - 1)
 
 ### selection
 
@@ -166,21 +122,21 @@ hy_gw['time'] = hy_gw.time.dt.strftime('%Y-%m')
 ##############################################
 #### Calc zone stats and apply categories
 
-perc_site_zone = merge(hy_gw, gw_site_zone, on='site')
+perc_site_zone = pd.merge(hy_gw, gw_site_zone, on='site')
 perc_zone = perc_site_zone.groupby(['zone', 'time'])['perc'].mean()
 
 prod1 = [gw_zones.zone.unique(), perc_zone.reset_index().time.unique()]
-mindex = MultiIndex.from_product(prod1, names=['zone', 'time'])
-blank1 = Series(nan, index=mindex, name='temp')
-zone_stats2 = concat([perc_zone, blank1], axis=1).perc
+mindex = pd.MultiIndex.from_product(prod1, names=['zone', 'time'])
+blank1 = pd.Series(nan, index=mindex, name='temp')
+zone_stats2 = pd.concat([perc_zone, blank1], axis=1).perc
 zone_stats2[zone_stats2.isnull()] = -1
 
 cat_val_lst = [-10, -0.5, 10, 25, 75, 90, 100]
 cat_name_lst = ['No data', 'Very low', 'Below average', 'Average', 'Above average', 'Very high']
 
-cat1 = cut(zone_stats2, cat_val_lst, labels=cat_name_lst).astype('str')
+cat1 = pd.cut(zone_stats2, cat_val_lst, labels=cat_name_lst).astype('str')
 cat1.name = 'category'
-cat2 = concat([zone_stats2, cat1], axis=1)
+cat2 = pd.concat([zone_stats2, cat1], axis=1)
 cat3 = cat2.sort_values('perc', ascending=False).category
 
 ################################################
@@ -192,18 +148,18 @@ ts_out1 = hy_gw.loc[:, ['site', 'time', 'perc']].copy()
 ts_out2 = ts_out1.pivot_table('perc', 'site', 'time').round(2)
 
 stats1 = mon_gw1.groupby('site')['data'].describe().round(2)
-ts_out3 = concat([ts_out2, stats1], axis=1, join='inner')
+ts_out3 = pd.concat([ts_out2, stats1], axis=1, join='inner')
 well_depths1 = well_depths.loc[ts_out3.index]
-ts_out4 = concat([ts_out3, well_depths1], axis=1).reset_index()
+ts_out4 = pd.concat([ts_out3, well_depths1], axis=1).reset_index()
 
-gw_sites_ts = gw_site_zone0.merge(ts_out4, on='site')
+gw_sites_ts = gw_sites.merge(ts_out4, on='site')
 gw_sites_ts.crs = gw_sites.crs
-gw_sites_ts.to_file(join(output_dir, gw_sites_ts_shp))
+gw_sites_ts.to_file(os.path.join(param.base_dir, param.input_dir, param.gw_sites_ts_shp))
 
 ts_out10 = hy_gw0.loc[:, ['site', 'time', 'perc']].copy()
 ts_out10['time'] = ts_out10['time'].dt.date.astype(str)
 ts_out10['perc'] = ts_out10['perc'].round(2)
-ts_out10.to_csv(join(output_dir, gw_sites_ts_csv), header=True, index=False)
+ts_out10.to_csv(os.path.join(param.base_dir, param.input_dir, param.gw_sites_ts_csv), header=True, index=False)
 
 
 #################################################
@@ -213,20 +169,6 @@ print('Creating the plot')
 
 ### Extract x and y data for plotting
 
-
-def getPolyCoords(row, coord_type, geom='geometry'):
-    """Returns the coordinates ('x' or 'y') of edges of a Polygon exterior"""
-
-    # Parse the exterior of the coordinate
-    exterior = row[geom].exterior
-
-    if coord_type == 'x':
-        # Get the x coordinates of the exterior
-        return list(exterior.coords.xy[0])
-    elif coord_type == 'y':
-        # Get the y coordinates of the exterior
-        return list(exterior.coords.xy[1])
-
 zones1 = multipoly_to_poly(gw_zones)
 
 zones1['x'] = zones1.apply(getPolyCoords, coord_type='x', axis=1)
@@ -235,7 +177,7 @@ zones1['y'] = zones1.apply(getPolyCoords, coord_type='y', axis=1)
 zones2 = zones1.drop('geometry', axis=1)
 
 ### Combine with time series data
-data1 = merge(cat1.unstack('time').reset_index(), zones2, on=['zone'])
+data1 = pd.merge(cat1.unstack('time').reset_index(), zones2, on=['zone'])
 time_index = hy_gw.time.unique().tolist()
 data1['cat'] = data1[time_index[-1]]
 
@@ -243,7 +185,7 @@ data1['cat'] = data1[time_index[-1]]
 gw_b = data1.copy()
 
 gw_source = ColumnDataSource(gw_b)
-time_source = ColumnDataSource(DataFrame({'index': time_index}))
+time_source = ColumnDataSource(pd.DataFrame({'index': time_index}))
 
 ### Set up plotting parameters
 c1 = brewer['RdBu'][5]
@@ -262,7 +204,8 @@ TOOLS = "pan,wheel_zoom,reset,hover,save"
 w = 700
 h = w
 
-output_file(join(output_dir, test2_html))
+bokeh_gw_cwms_html = os.path.join(param.base_dir, param.bokeh_dir, param.today_gw_cwms_html)
+output_file(bokeh_gw_cwms_html)
 
 ## dummy figure - for legend consistency
 p0 = figure(title='dummy Index', tools=[], logo=None, height=h, width=w)
@@ -280,25 +223,34 @@ hover3 = p3.select_one(HoverTool)
 hover3.point_policy = "follow_mouse"
 hover3.tooltips = [("Category", "@cat"), ("Zone", "@zone")]
 
-def callback1(source=gw_source, window=None):
-    data = source.data
-    f = cb_obj.value
-    source.data.cat = data[f]
-    source.change.emit()
+callback3 = CustomJS(args=dict(source=gw_source), code="""
+    var data = source.data;
+    var f = cb_obj.value;
+    source.data.cat = data[f];
+    source.change.emit();
+""")
 
 select3 = Select(title='Month', value=time_index[-1], options=time_index)
-select3.js_on_change('value', CustomJS.from_py_func(callback1))
+select3.js_on_change('value', callback3)
 
 layout3 = column(p3, select3)
 
-show(layout3)
+save(layout3)
+
+#############################################
+### Make html copy without date in filename
+
+bokeh_subregion_html1 = os.path.join(os.path.split(bokeh_gw_cwms_html)[0], param.base_gw_cwms_html)
+
+shutil.copy(bokeh_gw_cwms_html, bokeh_subregion_html1)
+
 
 #############################################
 #### Print where results are saved
 
-print('########################')
-
-print('shapefile results were saved here: ' + join(output_dir, gw_sites_ts_shp))
-print('csv results were saved here: ' + join(output_dir, gw_sites_ts_csv))
-print('The plot was saved here: ' + join(output_dir, test2_html))
+#print('########################')
+#
+#print('shapefile results were saved here: ' + os.path.join(param.base_dir, param.input_dir, param.gw_sites_ts_shp))
+#print('csv results were saved here: ' + os.path.join(param.base_dir, param.input_dir, param.gw_sites_ts_csv))
+#print('The plot was saved here: ' + os.path.join(param.base_dir, param.input_dir, param.today_gw_cwms_html))
 

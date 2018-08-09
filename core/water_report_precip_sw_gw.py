@@ -4,9 +4,6 @@ Created on Mon Jul 17 16:27:09 2017
 
 @author: MichaelEK
 """
-
-#import sys
-#sys.path.append(r'C:\git\Ecan.Science.Python.Base')
 from gistools.vector import multipoly_to_poly
 from geopandas import read_file, sjoin, GeoDataFrame, overlay
 from pandas import DateOffset, to_datetime, concat, merge, cut, DataFrame, MultiIndex, Series, read_csv
@@ -18,7 +15,7 @@ from pdsql import mssql
 from pyhydrotel import get_ts_data
 from configparser import ConfigParser
 import os
-from util import grp_ts_agg
+from util import grp_ts_agg, getPolyCoords
 import shutil
 
 from bokeh.plotting import figure, show, output_file
@@ -26,6 +23,7 @@ from bokeh.models import ColumnDataSource, HoverTool, CategoricalColorMapper, Cu
 from bokeh.palettes import brewer
 from bokeh.models.widgets import Select
 from bokeh.layouts import column
+from bokeh.io import save
 
 import parameters as param
 
@@ -317,19 +315,6 @@ ts_out3.to_csv(ts_out_path, index=False)
 
 print('Creating the plot')
 
-def getPolyCoords(row, coord_type, geom='geometry'):
-    """Returns the coordinates ('x' or 'y') of edges of a Polygon exterior"""
-
-    # Parse the exterior of the coordinate
-    exterior = row[geom].exterior
-
-    if coord_type == 'x':
-        # Get the x coordinates of the exterior
-        return list(exterior.coords.xy[0])
-    elif coord_type == 'y':
-        # Get the y coordinates of the exterior
-        return list(exterior.coords.xy[1])
-
 zones1 = multipoly_to_poly(view_zones)
 
 zones1['x'] = zones1.apply(getPolyCoords, coord_type='x', axis=1)
@@ -490,7 +475,7 @@ tab2 = Panel(child=layout2, title='SW Flow')
 
 tabs_alt = Tabs(tabs=[tab1, tab2])
 
-show(tabs_alt)
+save(tabs_alt)
 
 
 ### Plots for catchments
@@ -526,7 +511,7 @@ select3.js_on_change('value', callback3)
 
 layout3 = column(p3, select3)
 
-show(layout3)
+save(layout3)
 
 #############################################
 ### Make html copy without date in filename

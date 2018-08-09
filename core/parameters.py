@@ -26,6 +26,7 @@ input_dir = 'input_data'
 hydro_server = str(ini1.get('Input', 'hydro_server'))
 hydro_database = str(ini1.get('Input', 'hydro_database'))
 ts_table = str(ini1.get('Input', 'ts_table'))
+sites_table = 'ExternalSite'
 
 hydrotel_server = str(ini1.get('Input', 'hydrotel_server'))
 hydrotel_database = str(ini1.get('Input', 'hydrotel_database'))
@@ -36,6 +37,12 @@ rec_catch_shp = str(ini1.get('Input', 'rec_catch_shp'))
 view_bound_shp = str(ini1.get('Input', 'view_bound_shp'))
 precip_site_shp = str(ini1.get('Input', 'precip_site_shp'))
 pot_sw_site_list_csv = str(ini1.get('Input', 'pot_sw_site_list_csv'))
+
+gw_poly_shp = str(ini1.get('Input', 'gw_poly_shp'))
+well_depth_csv = str(ini1.get('Input', 'well_depth_csv'))
+upper_waitaki_shp = str(ini1.get('Input', 'upper_waitaki_shp'))
+
+interp = True
 
 qual_codes = [10, 18, 20, 30, 50, 11, 21, 40]
 
@@ -52,6 +59,14 @@ date_now = str(date.today())
 
 ts_out_csv = 'ts_out_perc_' + date_now + '.csv'
 
+gw_sites_shp = 'gw_sites_' + date_now + '.shp'
+all_gw_sites_shp = 'all_discrete_gw_sites_' + date_now + '.shp'
+gw_sites_ts_shp = 'gw_sites_perc_' + date_now + '.shp'
+gw_sites_ts_csv = 'gw_sites_perc_' + date_now + '.csv'
+
+## plots
+
+
 ## plots
 base_precip_sw_subregion_name = 'precip_sw'
 
@@ -63,3 +78,5 @@ base_sw_catch_name = 'sw_catch'
 base_sw_catch_html = base_sw_catch_name + '.html'
 today_sw_catch_html = base_sw_catch_name + '_' + date_now + '.html'
 
+today_gw_cwms_html = 'gw_cwms_' + date_now + '.html'
+base_gw_cwms_html = 'gw_cwms.html'
