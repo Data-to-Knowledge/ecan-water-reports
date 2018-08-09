@@ -34,7 +34,7 @@ with open(index_rst_path, 'w+') as w1:
 
 repo = Repo(param.base_dir)
 
-file_list = [map1.bokeh_catch_html1, map1.bokeh_subregion_html1, map1.bokeh_catch_html, map1.bokeh_subregion_html, map1.ts_out_path]
+file_list = [map1.bokeh_catch_html1, map1.bokeh_subregion_html1, map1.bokeh_catch_html, map1.bokeh_subregion_html, map1.ts_out_path, index_rst_path]
 
 repo.index.add(file_list)
 repo.index.commit('update')
