@@ -5,6 +5,7 @@ Created on Thu Aug  9 10:19:05 2018
 @author: MichaelEK
 """
 from git import Repo
+import os
 import parameters as param
 
 ################################
@@ -12,6 +13,20 @@ import parameters as param
 
 print('precip and sw maps')
 import water_report_precip_sw_gw as map1
+
+
+################################
+### Modify the index.rst
+
+index_rst = r'sphinx\source\index.rst'
+index_rst_path = os.path.join(param.base_dir, index_rst)
+
+with open(index_rst_path, 'r+') as r1:
+    lines = r1.readlines()
+    lines[8] = param.date_now + '\n'
+
+with open(index_rst_path, 'w+') as w1:
+    w1.writelines(lines)
 
 
 ################################
