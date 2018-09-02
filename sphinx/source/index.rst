@@ -6,7 +6,7 @@ Maps of Canterbury illustrating the relative wetness or dryness for precipitatio
 
 The Latest Maps section have maps that are automatically updated once a month (at least).
 The last update was on:
-2018-08-10
+2018-09-03
 
 NIWA seasonal climate outlook
 -------------------------------
