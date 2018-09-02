@@ -74,7 +74,7 @@ gw_sites = xy_to_gpd(['site', 'CwmsName'], 'NZTMX', 'NZTMY', sites2)
 gw2 = gw1[gw1.site.isin(gw_sites.site)].copy()
 
 ### Extract Site locations
-gw_sites.to_file(os.path.join(param.base_dir, param.input_dir, param.gw_sites_shp))
+gw_sites.to_file(os.path.join(param.base_dir, param.output_dir, param.gw_sites_shp))
 
 ### Combine the sites with the polygons
 gw_site_zone = gw_sites.drop(['geometry'], axis=1)
@@ -154,12 +154,12 @@ ts_out4 = pd.concat([ts_out3, well_depths1], axis=1).reset_index()
 
 gw_sites_ts = gw_sites.merge(ts_out4, on='site')
 gw_sites_ts.crs = gw_sites.crs
-gw_sites_ts.to_file(os.path.join(param.base_dir, param.input_dir, param.gw_sites_ts_shp))
+gw_sites_ts.to_file(os.path.join(param.base_dir, param.output_dir, param.gw_sites_ts_shp))
 
 ts_out10 = hy_gw0.loc[:, ['site', 'time', 'perc']].copy()
 ts_out10['time'] = ts_out10['time'].dt.date.astype(str)
 ts_out10['perc'] = ts_out10['perc'].round(2)
-ts_out10.to_csv(os.path.join(param.base_dir, param.input_dir, param.gw_sites_ts_csv), header=True, index=False)
+ts_out10.to_csv(os.path.join(param.base_dir, param.output_dir, param.gw_sites_ts_csv), header=True, index=False)
 
 
 #################################################
