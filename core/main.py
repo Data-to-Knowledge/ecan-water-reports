@@ -63,5 +63,5 @@ except Exception as err:
     err1 = err
     print(err1)
     today2 = str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
-    log2 = pd.DataFrame([[today3, 'Freshwater Maps', 'fail', str(err1), str(map1.start_date), today2]], columns=['Time', 'HydroTable', 'RunResult', 'Comment', 'FromTime', 'RunTimeEnd'])
+    log2 = pd.DataFrame([[today2, 'Freshwater Maps', 'fail', str(err1)[:299], str(map1.start_date), today2]], columns=['Time', 'HydroTable', 'RunResult', 'Comment', 'FromTime', 'RunTimeEnd'])
     to_mssql(log2, param.hydro_server, param.hydro_database, 'ExtractionLog')
