@@ -2,7 +2,7 @@
 Welcome to ECan's Freshwater Reports
 ===========================================
 
-This site contains seasonal reports and maps of Canterbury illustrating the relative wetness or dryness for precipitation, surface water, and groundwater. The intended audience for the maps and the associated reports are the Environment Canterbury scientists and councillors.
+This site contains seasonal reports and maps of Canterbury illustrating the relative wetness or dryness for precipitation, surface water, and groundwater. The intended audience for the maps and the associated reports are the Environment Canterbury scientists and councilors.
 
 The Latest Monthly Maps section has maps that are automatically updated once a month (at least).
 The last update was on:
