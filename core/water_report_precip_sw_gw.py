@@ -142,7 +142,7 @@ hy_sites = sites2.site.astype(str).tolist()
 
 hy1 = get_ts_data(param.hydrotel_server, param.hydrotel_database, 'flow', hy_sites, from_date=start_date.strftime('%Y-%m-%d'), to_date=end_date.strftime('%Y-%m-%d'), resample_code='D')
 hy2 = hy1.reset_index().drop('MType', axis=1)
-hy2.rename(columns={'ExtSysID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
+hy2.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
 
 if len(hy2.site.unique()) != len(hy_sites):
     print(str(len(hy_sites) - len(hy2.site.unique())) + " sites are not in Hydrotel")
@@ -168,7 +168,7 @@ hy_sites = mon_precip1.site.unique().astype(str).tolist()
 
 hy1 = get_ts_data(param.hydrotel_server, param.hydrotel_database, 'rainfall', hy_sites, from_date=start_date.strftime('%Y-%m-%d'), to_date=end_date.strftime('%Y-%m-%d'), resample_code='D')
 hy2 = hy1.reset_index().drop('MType', axis=1)
-hy2.rename(columns={'ExtSysID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
+hy2.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
 
 if len(hy2.site.unique()) != len(hy_sites):
     print(str(len(hy_sites) - len(hy2.site.unique())) + " sites are not in Hydrotel")
