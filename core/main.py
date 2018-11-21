@@ -13,6 +13,8 @@ import parameters as param
 
 today = datetime.today()
 today1 = str(today.date())
+today2 = str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
+today3 = str(today.strftime('%Y-%m-%d %H:%M:%S'))
 
 try:
 
@@ -53,9 +55,6 @@ try:
 
     ###############################
     ### Log
-
-    today2 = str(datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
-    today3 = str(today.strftime('%Y-%m-%d %H:%M:%S'))
 
     log1 = pd.DataFrame([[today3, 'Freshwater Maps', 'pass', 'all good', str(map1.start_date), today2]], columns=['Time', 'HydroTable', 'RunResult', 'Comment', 'FromTime', 'RunTimeEnd'])
     to_mssql(log1, param.hydro_server, param.hydro_database, 'ExtractionLog')
