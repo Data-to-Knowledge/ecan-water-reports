@@ -35,7 +35,7 @@ bad_sites = {'66101': '14240260', '65104': '165104', '69650': '696501'}
 irr_mons1 = [10, 11, 12]
 irr_mons2 = [1, 2, 3, 4]
 
-include_flow_methods = ['Correlated from Telem', 'Gauged', 'Telemetered', 'Visually Gauged']
+include_flow_methods = ['Correlated from Telem', 'Gauged', 'Telemetered', 'Visually Gauged', 'GW manual']
 
 ##color palettes
 full_color = sns.color_palette('Blues')
@@ -43,9 +43,6 @@ partial_color = sns.color_palette('Greens')
 no_color = sns.color_palette('Greys')
 
 export_path = r'E:\ecan\shared\projects\mon_water_report\plots'
-export_name_fancy = '2018.05.01-2018.08.31_restrictions_fancy.png'
-export_name = '2018.05.01-2018.08.31_restrictions.png'
-export_man_calc_sites = 'lowflow_sites.csv'
 #export_sel2 = 'lowflow_restr_2017-10-01.csv'
 
 ####################################
@@ -64,6 +61,10 @@ else:
 end_mon_now = datetime1 - pd.DateOffset(months=1) + pd.tseries.offsets.MonthEnd(0)
 to_date = str(end_mon_now.date())
 #to_date = '2018-09-04'
+
+export_name_fancy = '{start}_{end}_restrictions_fancy.png'.format(start=from_date, end=to_date)
+export_name = '{start}_{end}_restrictions.png'.format(start=from_date, end=to_date)
+export_man_calc_sites = '{start}_{end}_lowflow_sites.csv'.format(start=from_date, end=to_date)
 
 ####################################
 ### extract data
@@ -122,14 +123,22 @@ restr3 = restr2.unstack([0, 1, 2]).fillna(0)
 ### Iterate through zones
 
 for zone in restr3.columns.levels[0]:
-    restr4 = restr3[zone].copy()
-    if restr4.empty:
-        continue
+    if (zone not in restr3):
+        restr4 = pd.DataFrame(np.repeat(0, len(restr3.index)), index=restr3.index, columns=['Full'])
+        restr4.columns.name = 'restr_category'
+    else:
+        restr4 = restr3[zone].copy()
     y_max = sites_zone_count_plot.loc[zone]
 
     d1 = restr4.columns.to_frame()
-    full_n = len(d1.loc['Full'])
-    partial_n = len(d1.loc['Partial'])
+    if 'Full' in d1.restr_category:
+        full_n = len(d1.loc['Full'])
+    else:
+        full_n = 0
+    if 'Partial' in d1.restr_category:
+        partial_n = len(d1.loc['Partial'])
+    else:
+        partial_n = 0
 
     all_colors = []
     all_colors.extend(full_color[:full_n])
@@ -142,15 +151,16 @@ for zone in restr3.columns.levels[0]:
     sns.set_context('poster')
 
     fig, ax = plt.subplots(figsize=(15, 10))
-    restr4.plot.area(stacked=True, ax=ax, color=all_colors, ylim=[0, y_max])
-    #restr1.plot.line(stacked=True, ax=ax)
+    restr4.plot.area(stacked=True, ax=ax, color=all_colors)
+    x_axis = ax.axes.get_xaxis()
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(handles[::-1], labels[::-1], title='Restriction Categories', loc='upper left')
-    x_axis = ax.axes.get_xaxis()
+    ax.set_ylim(0, y_max)
     x_label = x_axis.get_label()
     x_label.set_visible(False)
     ax.yaxis.set_major_locator(loc)
     ax.set_ylabel('Number of low flow sites on restriction')
+    y_axis = ax.axes.get_yaxis()
     xticks = ax.get_xticks()
     if len(xticks) > 15:
         for label in ax.get_xticklabels()[::2]:
@@ -174,7 +184,6 @@ for zone in restr3.columns.levels[0]:
 
     fig, ax = plt.subplots(figsize=(15, 10))
     restr5.plot.area(stacked=True, ax=ax, color=[full_color[3], partial_color[3]], ylim=[0, y_max], alpha=0.7)
-    #restr1.plot.line(stacked=True, ax=ax)
     handles, labels = ax.get_legend_handles_labels()
     ax.legend(handles[::-1], labels[::-1], title='Restriction Categories', loc='upper left')
     x_axis = ax.axes.get_xaxis()
