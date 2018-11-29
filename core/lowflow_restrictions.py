@@ -60,7 +60,7 @@ else:
 
 end_mon_now = datetime1 - pd.DateOffset(months=1) + pd.tseries.offsets.MonthEnd(0)
 to_date = str(end_mon_now.date())
-#to_date = '2018-09-04'
+#to_date = '2018-11-30'
 
 export_name_fancy = '{start}_{end}_restrictions_fancy.png'.format(start=from_date, end=to_date)
 export_name = '{start}_{end}_restrictions.png'.format(start=from_date, end=to_date)

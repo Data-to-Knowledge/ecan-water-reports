@@ -87,11 +87,11 @@ zones = concat([sw_zones, precip_zones]).reset_index(drop=True)
 ### SW
 sites1 = sw_list[sw_list.Notes.isnull()].drop('Notes', axis=1)
 
-flow1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_col={'ExtSiteID': sites1.site.tolist(), 'DatasetTypeID': [5]}).reset_index()
+flow1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_col={'ExtSiteID': sites1.site.tolist(), 'DatasetTypeID': [5, 1521]}).reset_index()
 flow1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
 
 ### precip
-precip1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_col={'ExtSiteID': precip_sites.site.tolist(), 'DatasetTypeID': [15]}).reset_index()
+precip1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_col={'ExtSiteID': precip_sites.site.tolist(), 'DatasetTypeID': [15, 38]}).reset_index()
 precip1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
 
 ### GW
@@ -129,14 +129,16 @@ mon_summ = concat([mon_flow1, mon_precip1]).reset_index(drop=True)
 ###############################################
 #### Pull out recent monthly data from hydrotel
 
-now1 = to_datetime(param.date_now)
+now1 = to_datetime(param.date_now) + DateOffset(days=param.add_days)
 start_date = now1 - DateOffset(months=param.n_previous_months) - DateOffset(days=now1.day - 1)
 end_date = now1 - DateOffset(days=now1.day - 1)
+
+print('start date: ' + str(start_date), 'and date: ' + str(end_date))
 
 ### SW
 print('Getting HydroTel Flow Data:')
 sites2 = sites1.copy()
-sites2.loc[sites2.site.isin([64610, 65104, 68526]), 'site'] = [164610, 165104, 168526]
+sites2.loc[sites2.site.isin([64610, 68526]), 'site'] = [164610, 168526]
 
 hy_sites = sites2.site.astype(str).tolist()
 

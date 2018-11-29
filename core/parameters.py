@@ -46,7 +46,8 @@ interp = True
 
 qual_codes = [10, 18, 20, 30, 50, 11, 21, 40]
 
-n_previous_months = 6
+n_previous_months = int(ini1.get('Input', 'n_previous_months'))
+add_days = int(ini1.get('Input', 'add_days'))
 
 month_names = ['Jan', 'Feb', 'March', 'April', 'May', 'June', 'July', 'August', 'Sept', 'Oct', 'Nov', 'Dec']
 

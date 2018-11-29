@@ -59,7 +59,7 @@ count1 = gw1.groupby('site').data.count()
 start_date1 = gw1.groupby('site').time.first()
 end_date1 = gw1.groupby('site').time.last()
 
-now1 = pd.to_datetime(param.date_now)
+now1 = pd.to_datetime(param.date_now) + pd.DateOffset(days=param.add_days)
 start_date1 = now1 - pd.DateOffset(months=121) - pd.DateOffset(days=now1.day - 1)
 start_date2 = now1 - pd.DateOffset(months=1) - pd.DateOffset(days=now1.day - 1)
 
@@ -97,7 +97,6 @@ mon_gw1 = mon_gw1[mon_gw1.time < end_date]
 ## Assign month
 mon_gw1['mon'] = mon_gw1.time.dt.month
 
-
 ##############################################
 #### Run the monthly stats comparisons
 
@@ -111,6 +110,8 @@ hy_gw0['perc'] = (hy_gw0.groupby(['site', 'mon'])['data'].transform(lambda x: (r
 #### Pull out recent monthly data
 
 start_date = now1 - pd.DateOffset(months=param.n_previous_months) - pd.DateOffset(days=now1.day - 1)
+
+print('start date: ' + str(start_date), 'and date: ' + str(end_date))
 
 ### selection
 
