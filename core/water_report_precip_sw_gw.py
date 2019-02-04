@@ -384,13 +384,13 @@ bokeh_subregion_html = os.path.join(param.base_dir, param.bokeh_dir, param.today
 output_file(bokeh_subregion_html)
 
 ## dummy figure - for legend consistency
-p0 = figure(title='dummy Index', tools=[], height=h, width=w)
+p0 = figure(title='dummy Index', tools=[], logo=None, height=h, width=w)
 p0.patches('x', 'y', source=dummy_source, fill_color={'field': 'cat', 'transform': color_map}, line_color="black", line_width=1, legend='cat')
 p0.renderers = [i for i in p0.renderers if (type(i) == renderers.GlyphRenderer) | (type(i) == annotations.Legend)]
 p0.renderers[1].visible = False
 
 ## Figure 1 - precip
-p1 = figure(title='Precipitation Index', tools=TOOLS, active_scroll='wheel_zoom', plot_height=h, plot_width=w)
+p1 = figure(title='Precipitation Index', tools=TOOLS, logo=None, active_scroll='wheel_zoom', plot_height=h, plot_width=w)
 p1.patches('x', 'y', source=precip_source, fill_color={'field': 'cat', 'transform': color_map}, line_color="black", line_width=1, fill_alpha=1)
 p1.renderers.extend(p0.renderers)
 #p1.legend = p0.legend
@@ -416,7 +416,7 @@ layout1 = column(p1, select1)
 tab1 = Panel(child=layout1, title='Precip')
 
 ## Figure 2 - flow
-p2 = figure(title='Surface Water Flow Index', tools=TOOLS, active_scroll='wheel_zoom', plot_height=h, plot_width=w)
+p2 = figure(title='Surface Water Flow Index', tools=TOOLS, logo=None, active_scroll='wheel_zoom', plot_height=h, plot_width=w)
 p2.patches('x', 'y', source=flow_source, fill_color={'field': 'cat', 'transform': color_map}, line_color="black", line_width=1, legend='cat')
 p2.renderers.extend(p0.renderers)
 p2.legend.location = 'top_left'
@@ -489,7 +489,7 @@ output_file(bokeh_catch_html)
 
 
 ## Figure 1 - flow
-p3 = figure(title='Surface Water Flow Index by catchment', tools=TOOLS, active_scroll='wheel_zoom', plot_height=h, plot_width=w)
+p3 = figure(title='Surface Water Flow Index by catchment', tools=TOOLS, logo=None, active_scroll='wheel_zoom', plot_height=h, plot_width=w)
 p3.patches('x', 'y', source=cant_source, fill_color='white', line_color="black", line_width=1)
 p3.patches('x', 'y', source=flow_catch_source, fill_color={'field': 'cat', 'transform': color_map}, line_color="black", line_width=1, legend='cat')
 p3.renderers.extend(p0.renderers)
@@ -531,7 +531,3 @@ shutil.copy(bokeh_catch_html, bokeh_catch_html1)
 #print('########################')
 #print('Results were saved here: ' + os.path.join(output_dir, ts_out_csv))
 #print('The plot was saved here: ' + os.path.join(output_dir, precip_sw1_html))
-
-
-
-

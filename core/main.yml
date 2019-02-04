@@ -9,6 +9,6 @@ dependencies:
 - geopandas
 - scipy
 - pyhydrotel
-- bokeh
+- bokeh=0.13
 - gitpython
 - gistools
