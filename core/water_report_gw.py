@@ -209,13 +209,13 @@ bokeh_gw_cwms_html = os.path.join(param.base_dir, param.bokeh_dir, param.today_g
 output_file(bokeh_gw_cwms_html)
 
 ## dummy figure - for legend consistency
-p0 = figure(title='dummy Index', tools=[], logo=None, height=h, width=w)
+p0 = figure(title='dummy Index', tools=[], height=h, width=w)
 p0.patches('x', 'y', source=dummy_source, fill_color={'field': 'cat', 'transform': color_map}, line_color="black", line_width=1, legend='cat')
 p0.renderers = [i for i in p0.renderers if (type(i) == renderers.GlyphRenderer) | (type(i) == annotations.Legend)]
 p0.renderers[1].visible = False
 
 ## Figure 3 - GW
-p3 = figure(title='Groundwater Level Index', tools=TOOLS, logo=None, active_scroll='wheel_zoom', plot_height=h, plot_width=w)
+p3 = figure(title='Groundwater Level Index', tools=TOOLS, active_scroll='wheel_zoom', plot_height=h, plot_width=w)
 p3.patches('x', 'y', source=gw_source, fill_color={'field': 'cat', 'transform': color_map}, line_color="black", line_width=1, legend='cat')
 p3.renderers.extend(p0.renderers)
 p3.legend.location = 'top_left'
