@@ -60,7 +60,7 @@ else:
 
 end_mon_now = datetime1 - pd.DateOffset(months=1) + pd.tseries.offsets.MonthEnd(0)
 to_date = str(end_mon_now.date())
-#to_date = '2018-11-30'
+#to_date = '2019-02-12'
 
 export_name_fancy = '{start}_{end}_restrictions_fancy.png'.format(start=from_date, end=to_date)
 export_name = '{start}_{end}_restrictions.png'.format(start=from_date, end=to_date)
@@ -71,14 +71,14 @@ export_man_calc_sites = '{start}_{end}_lowflow_sites.csv'.format(start=from_date
 
 #cwms = rd_sql(**cwms_gis)
 
-lowflow1 = rd_sql(server, database, table, where_col={'site_type': ['LowFlow']}, from_date=from_date, to_date=to_date, date_col='date')
+lowflow1 = rd_sql(server, database, table, where_in={'site_type': ['LowFlow']}, from_date=from_date, to_date=to_date, date_col='date')
 lowflow1['date'] = pd.to_datetime(lowflow1['date'])
 lowflow2 = lowflow1[lowflow1.flow_method.isin(include_flow_methods)].copy()
 
 sites1 = lowflow2.site.unique().tolist()
 sites1.extend(list(bad_sites.keys()))
 
-sites = rd_sql(server, database, site_table, ['ExtSiteID', 'CwmsName'], where_col={'ExtSiteID': sites1}, rename_cols=['site', 'cwms'])
+sites = rd_sql(server, database, site_table, ['ExtSiteID', 'CwmsName'], where_in={'ExtSiteID': sites1}, rename_cols=['site', 'cwms'])
 
 bad_ones = sites[sites.site.isin(list(bad_sites.keys()))].copy()
 bad_ones.replace({'site': bad_sites}, inplace=True)
