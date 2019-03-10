@@ -27,6 +27,8 @@ from bokeh.io import save
 
 import parameters as param
 
+file_paths
+
 ##################################################
 #### Read in data
 

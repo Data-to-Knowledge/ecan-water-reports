@@ -122,6 +122,9 @@ restr3 = restr2.unstack([0, 1, 2]).fillna(0)
 ###############################################3
 ### Iterate through zones
 
+fancy_file_paths = {}
+bland_file_paths = {}
+
 for zone in restr3.columns.levels[0]:
     if (zone not in restr3):
         restr4 = pd.DataFrame(np.repeat(0, len(restr3.index)), index=restr3.index, columns=['Full'])
@@ -172,8 +175,10 @@ for zone in restr3.columns.levels[0]:
 
     plot2 = ax.get_figure()
     fancy_fig_name = '{from_date}_{to_date}_{zone}_lowflow_fancy.png'.format(from_date=from_date, to_date=to_date, zone=zone)
+    fancy_fig_path = path.join(export_path, fancy_fig_name)
+    bland_file_paths.update({zone: fancy_fig_path})
 
-    plot2.savefig(path.join(export_path, fancy_fig_name))
+    plot2.savefig(fancy_fig_path)
 
     ### Non-fancy plot
     restr5 = restr4.sum(level=0, axis=1)
@@ -203,8 +208,10 @@ for zone in restr3.columns.levels[0]:
     plot2 = ax.get_figure()
 
     norm_fig_name = '{from_date}_{to_date}_{zone}_lowflow_norm.png'.format(from_date=from_date, to_date=to_date, zone=zone)
+    norm_fig_path = path.join(export_path, norm_fig_name)
+    bland_file_paths.update({zone: norm_fig_path})
 
-    plot2.savefig(path.join(export_path, norm_fig_name))
+    plot2.savefig(norm_fig_path)
 
 
 

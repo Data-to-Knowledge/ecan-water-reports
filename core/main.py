@@ -27,6 +27,9 @@ try:
     print('gw map')
     import water_report_gw as map2
 
+    print('lowflow restrictions')
+    import lowflow_restrictions as lfr
+
     ################################
     ### Modify the index.rst
 
