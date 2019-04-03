@@ -27,7 +27,6 @@ from bokeh.io import save
 
 import parameters as param
 
-file_paths
 
 ##################################################
 #### Read in data
@@ -89,11 +88,11 @@ zones = concat([sw_zones, precip_zones]).reset_index(drop=True)
 ### SW
 sites1 = sw_list[sw_list.Notes.isnull()].drop('Notes', axis=1)
 
-flow1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_col={'ExtSiteID': sites1.site.tolist(), 'DatasetTypeID': [5, 1521]}).reset_index()
+flow1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_in={'ExtSiteID': sites1.site.tolist(), 'DatasetTypeID': [5, 1521]}).reset_index()
 flow1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
 
 ### precip
-precip1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_col={'ExtSiteID': precip_sites.site.tolist(), 'DatasetTypeID': [15, 38]}).reset_index()
+precip1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_in={'ExtSiteID': precip_sites.site.tolist(), 'DatasetTypeID': [15, 38]}).reset_index()
 precip1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
 
 ### GW
@@ -386,13 +385,13 @@ bokeh_subregion_html = os.path.join(param.base_dir, param.bokeh_dir, param.today
 output_file(bokeh_subregion_html)
 
 ## dummy figure - for legend consistency
-p0 = figure(title='dummy Index', tools=[], logo=None, height=h, width=w)
+p0 = figure(title='dummy Index', tools=[], height=h, width=w)
 p0.patches('x', 'y', source=dummy_source, fill_color={'field': 'cat', 'transform': color_map}, line_color="black", line_width=1, legend='cat')
 p0.renderers = [i for i in p0.renderers if (type(i) == renderers.GlyphRenderer) | (type(i) == annotations.Legend)]
 p0.renderers[1].visible = False
 
 ## Figure 1 - precip
-p1 = figure(title='Precipitation Index', tools=TOOLS, logo=None, active_scroll='wheel_zoom', plot_height=h, plot_width=w)
+p1 = figure(title='Precipitation Index', tools=TOOLS, active_scroll='wheel_zoom', plot_height=h, plot_width=w)
 p1.patches('x', 'y', source=precip_source, fill_color={'field': 'cat', 'transform': color_map}, line_color="black", line_width=1, fill_alpha=1)
 p1.renderers.extend(p0.renderers)
 #p1.legend = p0.legend
@@ -418,7 +417,7 @@ layout1 = column(p1, select1)
 tab1 = Panel(child=layout1, title='Precip')
 
 ## Figure 2 - flow
-p2 = figure(title='Surface Water Flow Index', tools=TOOLS, logo=None, active_scroll='wheel_zoom', plot_height=h, plot_width=w)
+p2 = figure(title='Surface Water Flow Index', tools=TOOLS, active_scroll='wheel_zoom', plot_height=h, plot_width=w)
 p2.patches('x', 'y', source=flow_source, fill_color={'field': 'cat', 'transform': color_map}, line_color="black", line_width=1, legend='cat')
 p2.renderers.extend(p0.renderers)
 p2.legend.location = 'top_left'
@@ -443,7 +442,7 @@ layout2 = column(p2, select2)
 tab2 = Panel(child=layout2, title='SW Flow')
 
 ## Figure 3 - GW
-#p3 = figure(title='Groundwater Level Index', tools=TOOLS, logo=None, active_scroll='wheel_zoom', plot_height=h, plot_width=w)
+#p3 = figure(title='Groundwater Level Index', tools=TOOLS, active_scroll='wheel_zoom', plot_height=h, plot_width=w)
 #p3.patches('x', 'y', source=gw_source, fill_color={'field': 'cat', 'transform': color_map}, line_color="black", line_width=1, legend='cat')
 #p3.renderers.extend(p0.renderers)
 #p3.legend.location = 'top_left'
@@ -491,7 +490,7 @@ output_file(bokeh_catch_html)
 
 
 ## Figure 1 - flow
-p3 = figure(title='Surface Water Flow Index by catchment', tools=TOOLS, logo=None, active_scroll='wheel_zoom', plot_height=h, plot_width=w)
+p3 = figure(title='Surface Water Flow Index by catchment', tools=TOOLS, active_scroll='wheel_zoom', plot_height=h, plot_width=w)
 p3.patches('x', 'y', source=cant_source, fill_color='white', line_color="black", line_width=1)
 p3.patches('x', 'y', source=flow_catch_source, fill_color={'field': 'cat', 'transform': color_map}, line_color="black", line_width=1, legend='cat')
 p3.renderers.extend(p0.renderers)

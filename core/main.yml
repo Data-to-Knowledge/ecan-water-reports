@@ -11,4 +11,5 @@ dependencies:
 - pyhydrotel
 - bokeh=0.13
 - gitpython
-- gistools
+- gistools=1.0.2
+- seaborn

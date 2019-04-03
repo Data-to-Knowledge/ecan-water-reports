@@ -1,2 +1,3 @@
-D:\programs\Anaconda3_64bit\envs\water_reports\python.exe D:\git\mikek\ecan-water-reports\core\main.py
+call activate water_reports
+call python %~dp0\main.py
 pause

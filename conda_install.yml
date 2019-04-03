@@ -9,5 +9,7 @@ dependencies:
 - geopandas
 - scipy
 - pyhydrotel
-- bokeh
+- bokeh=0.13
 - gitpython
+- gistools=1.0.2
+- seaborn
