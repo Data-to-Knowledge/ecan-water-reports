@@ -24,7 +24,7 @@ datetime1 = pd.Timestamp.today()
 #####################################
 ### Parameters
 
-server = 'SQL2012test01'
+server = 'edwprod01'
 database = 'Hydro'
 table = 'LowFlowRestrSite'
 site_table = 'ExternalSite'
