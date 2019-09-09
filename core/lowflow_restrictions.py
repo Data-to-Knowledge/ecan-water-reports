@@ -42,7 +42,7 @@ full_color = sns.color_palette('Blues')
 partial_color = sns.color_palette('Greens')
 no_color = sns.color_palette('Greys')
 
-export_path = r'E:\ecan\shared\projects\mon_water_report\plots'
+export_path = r'C:\ecan\shared\projects\mon_water_report\plots'
 #export_sel2 = 'lowflow_restr_2017-10-01.csv'
 
 ####################################

@@ -13,3 +13,4 @@ dependencies:
 - gitpython
 - gistools=1.0.2
 - seaborn
+# - shapely=1.6.3
