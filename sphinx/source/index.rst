@@ -6,7 +6,7 @@ This site contains seasonal reports and maps of Canterbury illustrating the rela
 
 The Latest Monthly Maps section has maps that are automatically updated once a month (at least).
 The last update was on:
-2019-09-09
+2019-10-11
 
 NIWA seasonal climate outlook
 -------------------------------
