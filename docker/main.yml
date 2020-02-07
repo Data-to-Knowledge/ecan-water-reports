@@ -1,0 +1,16 @@
+name: water_reports
+channels:
+- conda-forge
+- mullenkamp
+- defaults
+dependencies:
+- python=3.6
+- pdsql
+- geopandas
+- scipy
+- pyhydrotel
+- bokeh=0.13
+- gitpython
+- gistools=1.0.2
+- seaborn
+# - shapely=1.6.3

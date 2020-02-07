@@ -1,0 +1,6 @@
+- server: 172.23.92.244
+  database: GIS_WaterData
+  tables: [WD_NZTM_WATER_ALLOCATION_ZONES]
+  col_names: [GeoPK, Zone_Name]
+  username: ReportingServices
+  password: coffee2go
