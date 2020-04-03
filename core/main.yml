@@ -6,11 +6,11 @@ channels:
 dependencies:
 - python=3.6
 - pdsql
-- geopandas
+- geopandas=0.5.1
 - scipy
 - pyhydrotel
 - bokeh=0.13
 - gitpython
 - gistools=1.0.2
-- seaborn
+- seaborn=0.8.1
 # - shapely=1.6.3
