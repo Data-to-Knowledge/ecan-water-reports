@@ -25,6 +25,8 @@ from bokeh.io import save
 
 import parameters as param
 
+pd.options.display.max_columns = 10
+
 ##################################################
 #### Read in data
 
@@ -46,8 +48,20 @@ well_depths = pd.read_csv(os.path.join(param.base_dir, param.input_dir, param.we
 sites = mssql.rd_sql(param.hydro_server, param.hydro_database, param.sites_table, ['ExtSiteID', 'NZTMX', 'NZTMY', 'CwmsName'], {'ExtSiteID': well_depths.index.tolist()})
 sites.rename(columns={'ExtSiteID': 'site'}, inplace=True)
 
-gw1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_in={'ExtSiteID': sites.site.tolist(), 'DatasetTypeID': [13]}).reset_index()
-gw1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
+## Manual data
+mgw1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_in={'ExtSiteID': sites.site.tolist(), 'DatasetTypeID': [13]}).reset_index()
+mgw1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
+
+## Recorder data
+rgw1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_in={'ExtSiteID': sites.site.tolist(), 'DatasetTypeID': [10]}).reset_index()
+rgw1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
+
+## Prioritise recorder data
+mgw1 = mgw1[~mgw1.site.isin(rgw1.site.unique())].copy()
+
+## Combine
+gw1 = pd.concat([mgw1, rgw1])
+
 
 #################################################
 #### Run monthly summary stats
@@ -55,17 +69,21 @@ gw1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, i
 print('Processing past data')
 
 ### Filter sites
-count1 = gw1.groupby('site').data.count()
-start_date1 = gw1.groupby('site').time.first()
+count0 = gw1.copy()
+count0['month'] = gw1.time.dt.month
+count0['year'] = gw1.time.dt.year
+count1 = count0.drop_duplicates(['site', 'year', 'month']).groupby('site').data.count()
+
+start_date0 = gw1.groupby('site').time.first()
 end_date1 = gw1.groupby('site').time.last()
 
 now1 = pd.to_datetime(param.date_now) + pd.DateOffset(days=param.add_days)
 start_date1 = now1 - pd.DateOffset(months=121) - pd.DateOffset(days=now1.day - 1)
 start_date2 = now1 - pd.DateOffset(months=1) - pd.DateOffset(days=now1.day - 1)
 
-sites1 = sites[sites.site.isin(count1[(count1 >= 120) & (end_date1 >= start_date2) & (start_date1 <= start_date1)].index)]
+sites1 = sites[sites.site.isin(count1[(count1 >= 120) & (end_date1 >= start_date2) & (start_date0 <= start_date1)].index)]
 
-uw1 = sites[sites.CwmsName.isin(['Upper Waitaki']) & sites.site.isin(count1[(count1 >= 80) & (end_date1 >= start_date2) & (start_date1 <= start_date1)].index)]
+uw1 = sites[sites.CwmsName.isin(['Upper Waitaki']) & sites.site.isin(count1[(count1 >= 80) & (end_date1 >= start_date2) & (start_date0 <= start_date1)].index)]
 
 sites2 = pd.concat([sites1, uw1]).drop_duplicates()
 
@@ -88,11 +106,11 @@ if param.interp:
     day3 = day2.interpolate(method='time', limit=40)
     mon_gw1 = day3.resample('M').median().stack().reset_index()
 else:
-    mon_gw1 = grp_ts_agg(gw2, 'site', 'time', 'M').mean().reset_index()
+    mon_gw1 = grp_ts_agg(gw2, 'site', 'time', 'M').median().reset_index()
 
 ## End the dataset to the lastest month
 end_date = now1 - pd.DateOffset(days=now1.day - 1)
-mon_gw1 = mon_gw1[mon_gw1.time < end_date]
+mon_gw1 = mon_gw1[mon_gw1.time < end_date].copy()
 
 ## Assign month
 mon_gw1['mon'] = mon_gw1.time.dt.month
@@ -115,7 +133,7 @@ print('start date: ' + str(start_date), 'and date: ' + str(end_date))
 
 ### selection
 
-hy_gw = hy_gw0[(hy_gw0.time >= start_date)]
+hy_gw = hy_gw0[(hy_gw0.time >= start_date)].copy()
 
 ### Convert datetime to year-month str
 hy_gw['time'] = hy_gw.time.dt.strftime('%Y-%m')
