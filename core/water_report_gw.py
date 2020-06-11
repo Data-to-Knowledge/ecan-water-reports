@@ -39,22 +39,44 @@ gw_zones = gpd.read_file(os.path.join(param.base_dir, param.input_dir, param.gw_
 gw_zones = gw_zones.rename(columns={'ZONE_NAME': 'zone'})
 #gw_zones['mtype'] = 'gw'
 
-well_depths = pd.read_csv(os.path.join(param.base_dir, param.input_dir, param.well_depth_csv)).set_index('site')
+# well_depths = pd.read_csv(os.path.join(param.base_dir, param.input_dir, param.well_depth_csv)).set_index('site')
+
+well_depths = mssql.rd_sql(param.wells_server, param.wells_database, param.well_depth_table, ['well_no', 'depth']).drop_duplicates('well_no')
+well_depths = well_depths[well_depths['depth'].notnull()]
+well_depths.rename(columns={'depth': 'well_depth'}, inplace=True)
+
+well_screens = mssql.rd_sql(param.wells_server, param.wells_database, param.well_screen_table, ['well_no', 'top_screen'], where_in={'screen_no': [1]}).drop_duplicates('well_no')
+
+##################################################
+#### Process well depth catergories
+well_info = pd.merge(well_depths, well_screens, on='well_no', how='left')
+
+well_info['depth'] = 'Shallow'
+well_info.loc[well_info['top_screen'] >= 30, 'depth'] = 'Deep'
+well_info.loc[well_info['top_screen'].isnull() & (well_info['well_depth'] >= 30), 'depth'] = 'Deep'
+
+well_depths = well_info[['well_no', 'depth']].rename(columns={'well_no': 'site'}).set_index('site')
 
 #################################################
 #### Select sites
 
 ### GW
-sites = mssql.rd_sql(param.hydro_server, param.hydro_database, param.sites_table, ['ExtSiteID', 'NZTMX', 'NZTMY', 'CwmsName'], {'ExtSiteID': well_depths.index.tolist()})
+sites = mssql.rd_sql(param.hydro_server, param.hydro_database, param.sites_table, ['ExtSiteID', 'NZTMX', 'NZTMY', 'CwmsName'])
 sites.rename(columns={'ExtSiteID': 'site'}, inplace=True)
 
+sites = sites[sites.site.isin(well_depths.index)]
+
 ## Manual data
-mgw1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_in={'ExtSiteID': sites.site.tolist(), 'DatasetTypeID': [13]}).reset_index()
+mgw1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_in={'DatasetTypeID': [13]}).reset_index()
 mgw1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
 
+mgw1 = mgw1[mgw1.site.isin(sites.site)]
+
 ## Recorder data
-rgw1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_in={'ExtSiteID': sites.site.tolist(), 'DatasetTypeID': [10]}).reset_index()
+rgw1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_in={'DatasetTypeID': [10]}).reset_index()
 rgw1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
+
+rgw1 = rgw1[rgw1.site.isin(sites.site)]
 
 ## Prioritise recorder data
 mgw1 = mgw1[~mgw1.site.isin(rgw1.site.unique())].copy()

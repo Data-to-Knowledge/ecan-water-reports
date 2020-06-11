@@ -31,6 +31,12 @@ sites_table = 'ExternalSite'
 hydrotel_server = str(ini1.get('Input', 'hydrotel_server'))
 hydrotel_database = str(ini1.get('Input', 'hydrotel_database'))
 
+wells_server = str(ini1.get('Input', 'wells_server'))
+wells_database = str(ini1.get('Input', 'wells_database'))
+
+well_depth_table = 'well_details'
+well_screen_table = 'screen_details'
+
 sw_poly_shp = str(ini1.get('Input', 'sw_poly_shp'))
 precip_poly_shp = str(ini1.get('Input', 'precip_poly_shp'))
 rec_catch_shp = str(ini1.get('Input', 'rec_catch_shp'))
