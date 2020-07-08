@@ -74,9 +74,9 @@ mgw1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, 
 mgw1 = mgw1[mgw1.site.isin(sites.site)]
 
 ## Recorder data
-hy1 = get_ts_data(param.hydrotel_server, param.hydrotel_database, ['water level', 'adjusted water level'], sites.site.tolist(), resample_code='D').reset_index()
-rgw1 = hy1.sort_values('MType').drop_duplicates(['ExtSiteID', 'DateTime']).drop('MType', axis=1)
-rgw1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
+# hy1 = get_ts_data(param.hydrotel_server, param.hydrotel_database, ['water level', 'adjusted water level'], sites.site.tolist(), resample_code='D').reset_index()
+# rgw1 = hy1.sort_values('MType').drop_duplicates(['ExtSiteID', 'DateTime']).drop('MType', axis=1)
+# rgw1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
 
 # rgw1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_in={'DatasetTypeID': [10]}).reset_index()
 # rgw1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
@@ -84,11 +84,11 @@ rgw1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, 
 # rgw1 = rgw1[rgw1.site.isin(sites.site)]
 
 ## Prioritise recorder data
-mgw1 = mgw1[~mgw1.site.isin(rgw1.site.unique())].copy()
+# mgw1 = mgw1[~mgw1.site.isin(rgw1.site.unique())].copy()
 
 ## Combine
-gw1 = pd.concat([mgw1, rgw1])
-
+# gw1 = pd.concat([rgw1, mgw1]).drop_duplicates(['site', 'time'])
+gw1 = mgw1.copy()
 
 #################################################
 #### Run monthly summary stats
