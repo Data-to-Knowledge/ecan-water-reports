@@ -68,8 +68,9 @@ sites.rename(columns={'ExtSiteID': 'site'}, inplace=True)
 sites = sites[sites.site.isin(well_depths.index)]
 
 ## Manual data
-mgw1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_in={'DatasetTypeID': [13]}).reset_index()
-mgw1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
+mgw1 = mssql.rd_sql(param.wells_server, param.wells_database, 'DTW_READINGS', ['well_no', 'date_read', 'depth_to_water'], where_in={'TIDEDA_FLAG': ['N']}, rename_cols=['site', 'time', 'data'])
+mgw1['time'] = pd.to_datetime(mgw1['time'])
+mgw1 = mgw1.groupby(['site', pd.Grouper(key='time', freq='D')]).mean().reset_index()
 
 mgw1 = mgw1[mgw1.site.isin(sites.site)]
 
