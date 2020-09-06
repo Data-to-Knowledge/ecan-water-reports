@@ -5,8 +5,6 @@ Created on Thu Aug  9 10:19:05 2018
 @author: MichaelEK
 """
 import pandas as pd
-from pdsql.mssql import to_mssql
-from git import Repo
 from datetime import datetime
 import os
 import parameters as param
@@ -22,7 +20,7 @@ try:
     ### Run mapping scripts
 
     print('precip and sw maps')
-    import water_report_precip_sw_gw as map1
+    import water_report_precip_sw as map1
 
     print('gw map')
     import water_report_gw as map2
@@ -47,14 +45,14 @@ try:
     ################################
     ### Commit and push to github
 
-    repo = Repo(param.base_dir)
-
-    file_list = [map1.bokeh_catch_html1, map1.bokeh_subregion_html1, map1.bokeh_catch_html, map1.bokeh_subregion_html, map1.ts_out_path, index_rst_path, map2.bokeh_gw_cwms_html, map2.bokeh_subregion_html1]
-
-    repo.index.add(file_list)
-    repo.index.commit('update')
-    origin = repo.remote('origin')
-    origin.push()
+    # repo = Repo(param.base_dir)
+    #
+    # file_list = [map1.bokeh_catch_html1, map1.bokeh_subregion_html1, map1.bokeh_catch_html, map1.bokeh_subregion_html, map1.ts_out_path, index_rst_path, map2.bokeh_gw_cwms_html, map2.bokeh_subregion_html1]
+    #
+    # repo.index.add(file_list)
+    # repo.index.commit('update')
+    # origin = repo.remote('origin')
+    # origin.push()
 
     ###############################
     ### Log
