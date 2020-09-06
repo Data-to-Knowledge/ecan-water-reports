@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from datetime import datetime
 import matplotlib.ticker as plticker
+import lowflows as lf
 
 plt.ioff()
 
@@ -20,16 +21,16 @@ loc = plticker.MaxNLocator(integer=True)
 
 datetime1 = pd.Timestamp.today()
 #date1 = pd.Timestamp(datetime1.date())
+pd.options.display.max_columns = 10
 
 #####################################
 ### Parameters
 
-server = 'edwprod01'
-database = 'Hydro'
-table = 'LowFlowRestrSite'
-site_table = 'ExternalSite'
+usm_server = 'sql02prod'
+usm_database = 'usm'
+site_table = 'Site'
+site_attr_table = 'SiteAttribute'
 
-#cwms_gis = {'server': 'SQL2012PROD05', 'database': 'GIS', 'table': 'CWMS_NZTM_ZONES', 'col_names': ['ZONE_NAME'], 'rename_cols': ['cwms'], 'geo_col': True}
 bad_sites = {'66101': '14240260', '65104': '165104', '69650': '696501'}
 
 irr_mons1 = [10, 11, 12]
@@ -42,7 +43,7 @@ full_color = sns.color_palette('Blues')
 partial_color = sns.color_palette('Greens')
 no_color = sns.color_palette('Greys')
 
-export_path = r'C:\ecan\shared\projects\mon_water_report\plots'
+export_path = r'S:\Surface Water\shared\projects\mon_water_report\plots'
 #export_sel2 = 'lowflow_restr_2017-10-01.csv'
 
 ####################################
@@ -69,16 +70,21 @@ export_man_calc_sites = '{start}_{end}_lowflow_sites.csv'.format(start=from_date
 ####################################
 ### extract data
 
-#cwms = rd_sql(**cwms_gis)
+lf_sites1 = lf.sites().reset_index()
+lowflow1 = lf.site_summary_ts(from_date, to_date).reset_index()
+lowflow2 = lowflow1[lowflow1.SourceSystem.isin(['Hydrotel', 'Gauging'])].copy()
 
-lowflow1 = rd_sql(server, database, table, where_in={'site_type': ['LowFlow']}, from_date=from_date, to_date=to_date, date_col='date')
-lowflow1['date'] = pd.to_datetime(lowflow1['date'])
-lowflow2 = lowflow1[lowflow1.flow_method.isin(include_flow_methods)].copy()
+lowflow2.rename(columns={'ExtSiteID': 'site', 'RestrDate': 'date', 'RestrCategory': 'restr_category', 'MeasurementMethod': 'flow_method'}, inplace=True)
 
 sites1 = lowflow2.site.unique().tolist()
 sites1.extend(list(bad_sites.keys()))
 
-sites = rd_sql(server, database, site_table, ['ExtSiteID', 'CwmsName'], where_in={'ExtSiteID': sites1}, rename_cols=['site', 'cwms'])
+sites2 = rd_sql(usm_server, usm_database, site_table, ['ID', 'UpstreamSiteID'], where_in={'UpstreamSiteID': sites1})
+sites_attr1 = rd_sql(usm_server, usm_database, site_attr_table, ['SiteID', 'CwmsName'])
+sites_attr1.rename(columns={'SiteID': 'ID'}, inplace=True)
+
+sites = pd.merge(sites2, sites_attr1, on='ID').drop('ID', axis=1)
+sites.rename(columns={'UpstreamSiteID': 'site', 'CwmsName': 'cwms'}, inplace=True)
 
 bad_ones = sites[sites.site.isin(list(bad_sites.keys()))].copy()
 bad_ones.replace({'site': bad_sites}, inplace=True)

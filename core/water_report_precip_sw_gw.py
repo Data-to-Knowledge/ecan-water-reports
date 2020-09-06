@@ -95,9 +95,6 @@ flow1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'},
 precip1 = mssql.rd_sql_ts(param.hydro_server, param.hydro_database, param.ts_table, 'ExtSiteID', 'DateTime', 'Value', where_in={'ExtSiteID': precip_sites.site.tolist(), 'DatasetTypeID': [15, 38]}).reset_index()
 precip1.rename(columns={'ExtSiteID': 'site', 'DateTime': 'time', 'Value': 'data'}, inplace=True)
 
-### GW
-#gw1 = hydro().get_data(mtypes='gwl', sites=gw_sites.site, qual_codes=qual_codes)
-
 #################################################
 #### Run monthly summary stats
 
@@ -113,18 +110,8 @@ mon_precip1 = grp_ts_agg(precip1, 'site', 'time', 'M').sum().reset_index()
 mon_precip1['mon'] = mon_precip1.time.dt.month
 mon_precip1['mtype'] = 'precip'
 
-### gw
-#gw2 = gw1.sel_ts(mtypes='gwl')
-#gw2.index = gw2.index.droplevel('mtype')
-#gw3 = gw2.reset_index()
-#
-#mon_gw1 = grp_ts_agg(gw3, 'site', 'time', 'M').median().reset_index()
-#mon_gw1['mon'] = mon_gw1.time.dt.month
-#mon_gw1['mtype'] = 'gw'
-
 ### Combine all mtypes
 
-#mon_summ = concat([mon_flow1, mon_precip1, mon_gw1]).reset_index(drop=True)
 mon_summ = concat([mon_flow1, mon_precip1]).reset_index(drop=True)
 
 ###############################################
@@ -188,7 +175,6 @@ hy_precip['mtype'] = 'precip'
 
 ### combine data and update sites
 
-#hy_summ = concat([hy_flow, hy_precip, hy_gw]).reset_index(drop=True)
 hy_summ = concat([hy_flow, hy_precip]).reset_index(drop=True)
 hy_sites = hy_summ.site.unique()
 mon_summ = mon_summ[mon_summ.site.isin(hy_sites)]
@@ -225,23 +211,12 @@ precip_area_weight = precip_site_zone[['site', 'precip_area_weight']].sort_value
 
 precip_site_zone1 = precip_site_zone[['site', 'zone']].set_index('site').copy()
 
-### gw
-#gw_sites1 = gw_sites[gw_sites.site.isin(hy_summ.site[hy_summ.mtype == 'gw'].unique())]
-#gw_site_zone = sjoin(gw_sites1, gw_zones)
-#gw_site_zone = gw_site_zone.rename(columns={'zone_left': 'zone'}).drop('zone_right', axis=1)
-#gw_site_zone['gw_area_weight'] = 1/gw_site_zone.groupby(['zone'])['site'].transform('count')
-#gw_area_weight = gw_site_zone[['site', 'gw_area_weight']].sort_values('site').set_index('site')['gw_area_weight']
-#
-#gw_site_zone1 = gw_site_zone[['site', 'zone']].set_index('site').copy()
-
 ### Combine
 
-#area_weights = concat([sw_area_weight, precip_area_weight, gw_area_weight])
 area_weights = concat([sw_area_weight, precip_area_weight])
 area_weights.name = 'area_weights'
 area_weights.index = area_weights.index.astype(str)
 
-#site_zones = concat([sw_site_zone, precip_site_zone1, gw_site_zone1])
 site_zones = concat([sw_site_zone, precip_site_zone1])
 
 ##############################################
@@ -441,40 +416,7 @@ select2.js_on_change('value', callback2)
 layout2 = column(p2, select2)
 tab2 = Panel(child=layout2, title='SW Flow')
 
-## Figure 3 - GW
-#p3 = figure(title='Groundwater Level Index', tools=TOOLS, active_scroll='wheel_zoom', plot_height=h, plot_width=w)
-#p3.patches('x', 'y', source=gw_source, fill_color={'field': 'cat', 'transform': color_map}, line_color="black", line_width=1, legend='cat')
-#p3.renderers.extend(p0.renderers)
-#p3.legend.location = 'top_left'
-#
-#hover3 = p3.select_one(HoverTool)
-#hover3.point_policy = "follow_mouse"
-#hover3.tooltips = [("Category", "@cat"), ("Zone", "@zone")]
-#
-#callback3 = CustomJS(args=dict(source=gw_source), code="""
-#    var data = source.data;
-#    var f = cb_obj.value;
-#    source.data.cat = data[f];
-#    source.change.emit();
-#""")
-#
-#select3 = Select(title='Month', value=time_index[-1], options=time_index)
-#select3.js_on_change('value', callback3)
-##slider = Slider(start=0, end=len(time_index)-1, value=0, step=1)
-##slider.js_on_change('value', callback)
-#
-#layout3 = column(p3, select3)
-#tab3 = Panel(child=layout3, title='GW Level')
-
-## Combine
-#tabs = Tabs(tabs=[tab1, tab2, tab3])
-#
-#show(tabs)
-
-
 ### Only precip and SW
-
-#output_file(path.join(output_dir, precip_sw1_html))
 
 tabs_alt = Tabs(tabs=[tab1, tab2])
 
