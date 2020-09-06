@@ -28,6 +28,12 @@ hydro_database = str(ini1.get('Input', 'hydro_database'))
 ts_table = str(ini1.get('Input', 'ts_table'))
 sites_table = 'ExternalSite'
 
+usm_server = str(ini1.get('Input', 'usm_server'))
+usm_database = str(ini1.get('Input', 'usm_database'))
+
+site_table = 'Site'
+site_attr_table = 'SiteAttribute'
+
 hydrotel_server = str(ini1.get('Input', 'hydrotel_server'))
 hydrotel_database = str(ini1.get('Input', 'hydrotel_database'))
 

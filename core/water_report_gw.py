@@ -62,8 +62,12 @@ well_depths = well_info[['well_no', 'depth']].rename(columns={'well_no': 'site'}
 #### Select sites
 
 ### GW
-sites = mssql.rd_sql(param.hydro_server, param.hydro_database, param.sites_table, ['ExtSiteID', 'NZTMX', 'NZTMY', 'CwmsName'])
-sites.rename(columns={'ExtSiteID': 'site'}, inplace=True)
+sites1 = mssql.rd_sql(param.usm_server, param.usm_database, param.site_table, ['ID', 'UpstreamSiteID', 'NZTMX', 'NZTMY'])
+sites_attr1 = mssql.rd_sql(param.usm_server, param.usm_database, param.site_attr_table, ['SiteID', 'CwmsName'])
+sites_attr1.rename(columns={'SiteID': 'ID'}, inplace=True)
+
+sites = pd.merge(sites1, sites_attr1, on='ID').drop('ID', axis=1)
+sites.rename(columns={'UpstreamSiteID': 'site'}, inplace=True)
 
 sites = sites[sites.site.isin(well_depths.index)]
 
