@@ -25,22 +25,25 @@ try:
     print('gw map')
     import water_report_gw as map2
 
-    print('lowflow restrictions')
-    import lowflow_restrictions as lfr
-
     ################################
     ### Modify the index.rst
 
+    print('Modify the run date in the website text')
     index_rst = r'sphinx\source\index.rst'
     index_rst_path = os.path.join(param.base_dir, index_rst)
 
     with open(index_rst_path, 'r') as r1:
         lines = r1.readlines()
-        lines[8] = param.date_now + '\n'
+        lines[8] = today1 + '\n'
 
     with open(index_rst_path, 'w') as w1:
         w1.writelines(lines)
 
+    ###############################
+    ### Run the lowflow restrictions
+
+    print('lowflow restrictions')
+    import lowflow_restrictions as lfr
 
     ################################
     ### Commit and push to github
