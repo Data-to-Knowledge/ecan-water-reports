@@ -43,13 +43,15 @@ full_color = sns.color_palette('Blues')
 partial_color = sns.color_palette('Greens')
 no_color = sns.color_palette('Greys')
 
-export_path = r'\\fs02\ManagedShares2\Data\Surface Water\shared\projects\mon_water_report\plots'
+base_dir = path.split(path.realpath(path.dirname(__file__)))[0]
+
+export_path = path.join(base_dir, 'lowflow_plots')
 #export_sel2 = 'lowflow_restr_2017-10-01.csv'
 
 ####################################
 ### Set up time ranges
 
-mon_now = datetime1.month
+mon_now = datetime1.month - 1
 year_now = datetime1.year
 
 if mon_now in irr_mons1:
